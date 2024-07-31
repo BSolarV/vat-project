@@ -1,31 +1,72 @@
 <template>
-	<q-layout view="lHh Lpr lFf">
-		<q-header elevated>
+	<q-layout view="lHh lpR fFf">
+		<q-header elevated class="bg-primary text-white">
 			<q-toolbar>
-				<q-btn
-					flat
-					dense
-					round
-					icon="menu"
-					aria-label="Menu"
-					@click="toggleLeftDrawer"
-				/>
+				<q-btn dense flat round icon="menu" @click="toggleLeftDrawer" />
 
-				<q-toolbar-title> Quasar App </q-toolbar-title>
+				<q-toolbar-title>
+					<q-avatar>
+						<img
+							src="https://cdn.quasar.dev/logo-v2/svg/logo-mono-white.svg"
+						/>
+					</q-avatar>
+					Title
+				</q-toolbar-title>
+				<q-btn-dropdown
+					v-if="user"
+					color="primary"
+					:label="<string> user?.displayName"
+				>
+					<q-list>
+						<q-item
+							clickable
+							v-close-popup
+							@click="
+								() => {
+									settingDialogState = true;
+								}
+							"
+						>
+							<q-item-section>
+								<q-item-label>Settings</q-item-label>
+							</q-item-section>
+						</q-item>
 
-				<div>Quasar v{{ $q.version }}</div>
+						<q-item clickable v-close-popup @click="performLogout">
+							<q-item-section>
+								<q-item-label>Logout</q-item-label>
+							</q-item-section>
+						</q-item>
+					</q-list>
+				</q-btn-dropdown>
 			</q-toolbar>
 		</q-header>
 
-		<q-drawer v-model="leftDrawerOpen" show-if-above bordered>
+		<q-drawer show-if-above v-model="leftDrawerOpen" side="left" elevated>
 			<q-list>
 				<q-item-label header> Essential Links </q-item-label>
 
-				<EssentialLink
-					v-for="link in linksList"
-					:key="link.title"
-					v-bind="link"
-				/>
+				<q-item
+					v-for="(route, index) in routes"
+					clickable
+					tag="a"
+					target="_blank"
+					:href="route.path"
+					v-bind:key="index"
+				>
+					<q-item-section v-if="route.meta?.icon" avatar>
+						<q-icon :name="<string> route.meta.icon" />
+					</q-item-section>
+
+					<q-item-section>
+						<q-item-label>{{
+							route.meta?.title || ''
+						}}</q-item-label>
+						<q-item-label v-if="route.meta?.caption" caption>{{
+							route.meta?.caption
+						}}</q-item-label>
+					</q-item-section>
+				</q-item>
 			</q-list>
 		</q-drawer>
 
@@ -37,62 +78,29 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import EssentialLink, {
-	EssentialLinkProps,
-} from 'components/EssentialLink.vue';
+import { useAuth } from '@vueuse/firebase';
+import { auth } from 'boot/firebase';
+import routes from 'src/router/routes';
+import { useRouter } from 'vue-router';
 
 defineOptions({
 	name: 'MainLayout',
 });
 
-const linksList: EssentialLinkProps[] = [
-	{
-		title: 'Docs',
-		caption: 'quasar.dev',
-		icon: 'school',
-		link: 'https://quasar.dev',
-	},
-	{
-		title: 'Github',
-		caption: 'github.com/quasarframework',
-		icon: 'code',
-		link: 'https://github.com/quasarframework',
-	},
-	{
-		title: 'Discord Chat Channel',
-		caption: 'chat.quasar.dev',
-		icon: 'chat',
-		link: 'https://chat.quasar.dev',
-	},
-	{
-		title: 'Forum',
-		caption: 'forum.quasar.dev',
-		icon: 'record_voice_over',
-		link: 'https://forum.quasar.dev',
-	},
-	{
-		title: 'Twitter',
-		caption: '@quasarframework',
-		icon: 'rss_feed',
-		link: 'https://twitter.quasar.dev',
-	},
-	{
-		title: 'Facebook',
-		caption: '@QuasarFramework',
-		icon: 'public',
-		link: 'https://facebook.quasar.dev',
-	},
-	{
-		title: 'Quasar Awesome',
-		caption: 'Community Quasar projects',
-		icon: 'favorite',
-		link: 'https://awesome.quasar.dev',
-	},
-];
+const { user } = useAuth(auth);
 
 const leftDrawerOpen = ref(false);
 
 function toggleLeftDrawer() {
 	leftDrawerOpen.value = !leftDrawerOpen.value;
+}
+
+const settingDialogState = ref(false);
+
+const router = useRouter();
+
+async function performLogout() {
+	await auth.signOut();
+	router.push('/login');
 }
 </script>
