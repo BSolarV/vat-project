@@ -5,16 +5,12 @@
 				<q-btn dense flat round icon="menu" @click="toggleLeftDrawer" />
 
 				<q-toolbar-title>
-					<q-avatar>
-						<img
-							src="https://cdn.quasar.dev/logo-v2/svg/logo-mono-white.svg"
-						/>
-					</q-avatar>
-					Title
+					{{ t(<string> $route.meta.title) }}
 				</q-toolbar-title>
 				<q-btn-dropdown
 					v-if="user"
-					color="primary"
+					icon="account_circle"
+					color="secondary"
 					:label="<string> user?.displayName"
 				>
 					<q-list>
@@ -28,13 +24,17 @@
 							"
 						>
 							<q-item-section>
-								<q-item-label>Settings</q-item-label>
+								<q-item-label>{{
+									t('mainLayout_dropdown_settings')
+								}}</q-item-label>
 							</q-item-section>
 						</q-item>
 
 						<q-item clickable v-close-popup @click="performLogout">
 							<q-item-section>
-								<q-item-label>Logout</q-item-label>
+								<q-item-label>{{
+									t('mainLayout_dropdown_logout')
+								}}</q-item-label>
 							</q-item-section>
 						</q-item>
 					</q-list>
@@ -44,15 +44,17 @@
 
 		<q-drawer show-if-above v-model="leftDrawerOpen" side="left" elevated>
 			<q-list>
-				<q-item-label header> Essential Links </q-item-label>
+				<q-item-label header class="fit row no-wrap justify-center items-center text-h6">
+					<q-icon name="dynamic_form" size="2em" class="q-mr-sm"/>
+					{{ t('mainLayout_navPane_title') }}
+				</q-item-label>
 
 				<q-item
-					v-for="(route, index) in routes"
+					v-for="(route, index) in routes.filter(value => value.meta?.nav_pane)"
 					clickable
-					tag="a"
-					target="_blank"
-					:href="route.path"
+					@click="() => router.push(route.path)"
 					v-bind:key="index"
+					:active="$route.path === route.path"
 				>
 					<q-item-section v-if="route.meta?.icon" avatar>
 						<q-icon :name="<string> route.meta.icon" />
@@ -60,10 +62,10 @@
 
 					<q-item-section>
 						<q-item-label>{{
-							route.meta?.title || ''
+							t(<string> route.meta?.title || '')
 						}}</q-item-label>
 						<q-item-label v-if="route.meta?.caption" caption>{{
-							route.meta?.caption
+							t(<string> route.meta?.caption || '')
 						}}</q-item-label>
 					</q-item-section>
 				</q-item>
@@ -74,6 +76,31 @@
 			<router-view />
 		</q-page-container>
 	</q-layout>
+
+	<q-dialog v-model="settingDialogState" transition-duration="150">
+		<q-card style="min-width: 50%" class="q-pa-sm">
+			<q-card-section class="row items-center q-pb-none">
+				<div class="text-h6">
+					{{ t('mainLayout_dropdown_settings') }}
+				</div>
+				<q-space />
+				<q-btn icon="close" flat round dense v-close-popup />
+			</q-card-section>
+
+			<q-card-section class="q-pb-lg">
+				<q-select
+					dense
+					:model-value="<string> localeMapper[<string> locale]"
+					:options="
+						Object.entries(localeMapper).map(([key, value]) => {
+							return { label: value, value: key };
+						})
+					"
+					@update:model-value="(selected: SelectOption) => (locale = <string> selected.value)"
+				/>
+			</q-card-section>
+		</q-card>
+	</q-dialog>
 </template>
 
 <script setup lang="ts">
@@ -82,10 +109,19 @@ import { useAuth } from '@vueuse/firebase';
 import { auth } from 'boot/firebase';
 import routes from 'src/router/routes';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+import { SelectOption } from 'src/components/models';
 
 defineOptions({
 	name: 'MainLayout',
 });
+
+const { t, locale } = useI18n();
+
+const localeMapper: { [locale_id: string]: string } = {
+	'en-US': 'English',
+	'es-CL': 'Español',
+};
 
 const { user } = useAuth(auth);
 
