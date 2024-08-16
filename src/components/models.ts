@@ -34,6 +34,7 @@ export enum ServiceSectors {
 	utilities = 'serviceSector_utilities',
 	shipping = 'serviceSector_shipping',
 	transport = 'serviceSector_transport',
+	other = 'serviceSector_other',
 }
 
 export interface Client {
@@ -64,14 +65,23 @@ export enum PentestTypes {
 	pentestType_other = 'pentestType_other',
 }
 
+export interface ReportUser {
+	username: string;
+	userRole?: string;
+	comment?: string;
+}
+
 export interface ReportScope {
-	appName: string;
-	beginDate: Date;
-	EndDate: Date;
 	client: string;
+	appName: string;
+	pentestType: PentestTypes;
+	URL: string;
+	beginDate: string;
+	endDate: string;
 	enviroment: Enviroments;
 	typology: Typologies;
-	pentestType: PentestTypes;
+	users: ReportUser[];
+	observations: string;
 }
 
 // =====================================
