@@ -12,11 +12,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, provide, onMounted } from 'vue';
+import { ref, onMounted, inject } from 'vue';
 import { auth } from 'boot/firebase';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { useRouter } from 'vue-router';
 import { useAuth } from '@vueuse/firebase';
+import { loading } from 'src/components/injectionSymbols';
 
 defineOptions({
 	name: 'IndexPage',
@@ -24,15 +25,18 @@ defineOptions({
 
 const errorMessage = ref('');
 
-const isLoading = ref(true);
-provide('isLoading', isLoading);
+const { requestLoading, releaseLoading } = inject(loading, {
+	loadingRequests: ref(0),
+	requestLoading: () => {},
+	releaseLoading: () => {},
+});
 
 const { isAuthenticated } = useAuth(auth);
 
 const router = useRouter();
 
 const loginWithGoogle = async () => {
-	isLoading.value = true;
+	requestLoading();
 	try {
 		const provider = new GoogleAuthProvider();
 		await signInWithPopup(auth, provider);
@@ -40,7 +44,7 @@ const loginWithGoogle = async () => {
 		if (error instanceof Error) errorMessage.value = error.message;
 		else console.error(error);
 	} finally {
-		isLoading.value = false;
+		releaseLoading();
 		router.push('/');
 	}
 };

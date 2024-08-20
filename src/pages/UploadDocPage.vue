@@ -1,6 +1,8 @@
 <template>
 	<q-page>
+		<!-- ------------- -->
 		<!-- File Selector -->
+		<!-- ------------- -->
 		<TransitionGroup
 			tag="div"
 			name="fade"
@@ -30,18 +32,41 @@
 			</div>
 		</TransitionGroup>
 
+		<!-- ----------------- -->
 		<!-- Report Scope Data -->
-		<div v-if="reportScope !== undefined">
-			<ReportScopeDetails :report-scope="reportScope" />
+		<!-- ----------------- -->
+		<div v-if="fileProcessStages.scope">
+			<ReportScopeDetails
+				v-model="reportScope"
+				:clients-collection="clients"
+				@notifyClientCreated="
+					(clientId: string) => {
+						requestLoading();
+						fetchClients().then(
+							() => {
+								reportScope.client = clientId;
+							}
+						).finally(() => {
+							releaseLoading();
+						});
+					}
+				"
+			/>
 		</div>
+
+		<!-- ------------------------- -->
+		<!-- Vulnerability Card Mapper -->
+		<!-- ------------------------- -->
 	</q-page>
 </template>
 
 <script setup lang="ts">
-import { Ref, ref } from 'vue';
+import { inject, onMounted, Ref, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import mammoth from 'mammoth';
 import {
+	Client,
+	ClientsCollection,
 	Enviroments,
 	PentestTypes,
 	ReportScope,
@@ -49,12 +74,40 @@ import {
 	Typologies,
 } from 'src/components/models';
 import ReportScopeDetails from 'src/components/ReportScopeDetails.vue';
-//import { ReportScope } from 'src/components/models';
+import { collection, getDocs } from 'firebase/firestore';
+import { firestore } from 'src/boot/firebase';
+import { loading } from 'src/components/injectionSymbols';
 
 // ===========================
 // Global auxiliaries
 // ===========================
+
 const { t } = useI18n();
+
+const { requestLoading, releaseLoading } = inject(loading, {
+	loadingRequests: ref(0),
+	requestLoading: () => {},
+	releaseLoading: () => {},
+});
+
+// ===========================
+// Database access
+// ===========================
+
+const clients: Ref<ClientsCollection> = ref({});
+async function fetchClients() {
+	requestLoading();
+	try {
+		const querySnapshot = await getDocs(collection(firestore, 'Clients'));
+		querySnapshot.docs.map(
+			(doc) => (clients.value[doc.id] = doc.data() as Client)
+		);
+	} catch (error) {
+		console.error('Error fetching clients:', error);
+	} finally {
+		releaseLoading();
+	}
+}
 
 // ===========================
 // File selection
@@ -64,6 +117,8 @@ const fileErrorMessage: Ref<string | undefined> = ref(undefined);
 
 // process File
 async function processReportFile(file: File) {
+	requestLoading();
+
 	fileErrorMessage.value = undefined;
 
 	if (!(file instanceof File)) {
@@ -73,7 +128,7 @@ async function processReportFile(file: File) {
 	try {
 		selectedFile.value = file;
 		const arrayBuffer = await file.arrayBuffer();
-		processScope(arrayBuffer);
+		await processScope(arrayBuffer);
 	} catch (error: unknown) {
 		if (error instanceof Error) {
 			if (error.name === 'process_file_error') {
@@ -84,7 +139,9 @@ async function processReportFile(file: File) {
 				return;
 			}
 		}
-		console.error(error);
+	} finally {
+		fileProcessStages.value.scope = true;
+		releaseLoading();
 	}
 }
 
@@ -115,7 +172,24 @@ async function processScope(arrayBuffer: ArrayBuffer) {
 // ===========================
 // File processing
 // ===========================
-const reportScope: Ref<ReportScope | undefined> = ref(undefined);
+
+const fileProcessStages = ref({
+	scope: false,
+	vulnerabilities: false,
+});
+
+const reportScope: Ref<ReportScope> = ref({
+	client: '',
+	appName: '',
+	pentestType: <PentestTypes>'',
+	URL: '',
+	beginDate: '',
+	endDate: '',
+	enviroment: <Enviroments>'',
+	typology: <Typologies>'',
+	users: [],
+	observations: '',
+});
 
 // Process Scope table
 function processScopeTable(table: Element) {
@@ -215,6 +289,14 @@ function processScopeTable(table: Element) {
 		console.log('La tabla de alcance no tiene suficientes filas.');
 	}
 }
+
+// ===========================
+// On Mounted
+// ===========================
+
+onMounted(() => {
+	fetchClients();
+});
 </script>
 
 <style>

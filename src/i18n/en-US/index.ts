@@ -2,6 +2,11 @@ export default {
 	'': '',
 
 	// =========================
+	// General texts
+	// =========================
+	select_filterNoResults: 'No results',
+
+	// =========================
 	// Main Layout
 	// =========================
 	mainLayout_navPane_title: 'Project VAT',
@@ -63,8 +68,46 @@ export default {
 	typology_grayBox: 'Gray Box',
 	typology_whiteBox: 'White Box',
 
-	// ENviromets
+	// Enviromets
 	enviroment_production: 'Production',
 	enviroment_preProduction: 'Pre-production',
 	enviroment_development: 'Development',
+
+	// Pentest Types
+	pentestType_web: 'Web',
+	pentestType_mobile: 'Mobile',
+	pentestType_OS: 'Operating System',
+	pentestType_DB: 'Database',
+	pentestType_redTeam: 'Red Team',
+	pentestType_blueTeam: 'Blue Team',
+	pentestType_purpleTeam: 'Purple Team',
+	pentestType_other: 'Other',
+
+	// Report User Fields
+	ReportUser_username: 'Username',
+	ReportUser_role: 'Role',
+	ReportUser_comment: 'Comment',
+	ReportUser_action: 'Action',
+	ReportUser_add_user: 'Add user',
+
+	// Report Scope Fields
+	ReportScopeDetails_client: 'Client',
+	ReportScopeDetails_pentest_type: 'Pentest type',
+	ReportScopeDetails_environment: 'Environment',
+	ReportScopeDetails_typology: 'Typology',
+	ReportScopeDetails_app_name: 'App name',
+	ReportScopeDetails_url: 'Url',
+	ReportScopeDetails_date_range: 'Pentest period',
+	ReportScopeDetails_two_date_joiner: 'to',
+	ReportScopeDetails_observations: 'Observations',
+	ReportScopeDetails_users: 'Users',
+
+	ReportScopeDetails_add_client: 'Add new client',
+
+	// =========================
+	// New Client Dialog
+	// =========================
+	NewClientDialog_Title: 'Add new client',
+	NewClientDialog_Name: 'Name',
+	NewClientDialog_ServiceSector: 'Service Sector',
 };

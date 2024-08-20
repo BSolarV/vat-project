@@ -39,7 +39,11 @@ export enum ServiceSectors {
 
 export interface Client {
 	name: string;
-	serviceSector: string;
+	serviceSector: ServiceSectors;
+}
+
+export interface ClientsCollection {
+	[id: string]: Client;
 }
 
 export enum Enviroments {

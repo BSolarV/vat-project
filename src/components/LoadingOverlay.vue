@@ -1,5 +1,5 @@
 <template>
-	<div v-if="isLoading" class="loading-overlay">
+	<div v-show="loadingRequests" class="loading-overlay">
 		<div class="loader"></div>
 	</div>
 </template>
@@ -9,9 +9,14 @@ defineOptions({
 	name: 'LoadingOverlay',
 });
 
-import { inject } from 'vue';
+import { inject, ref } from 'vue';
+import { loading } from './injectionSymbols';
 
-const isLoading = inject('isLoading');
+const { loadingRequests } = inject(loading, {
+	loadingRequests: ref(0),
+	requestLoading: () => {},
+	releaseLoading: () => {},
+});
 </script>
 
 <style>
@@ -25,7 +30,7 @@ const isLoading = inject('isLoading');
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	z-index: 1000;
+	z-index: 100000;
 }
 
 /* HTML: <div class="loader"></div> */

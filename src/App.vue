@@ -5,26 +5,36 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, provide, ref } from 'vue';
+import { onMounted, provide, Ref, ref } from 'vue';
 import { useAuth } from '@vueuse/firebase';
 import { auth } from './boot/firebase';
 import LoginPage from './pages/LoginPage.vue';
 import LoadingOverlay from './components/LoadingOverlay.vue';
+import { loading } from './components/injectionSymbols';
 
 defineOptions({
 	name: 'App',
 });
 
-const isLoading = ref(true);
+const loadingRequests: Ref<number> = ref<number>(1);
+const requestLoading = () => {
+	loadingRequests.value += 1;
+};
+const releaseLoading = () => {
+	if (loadingRequests.value > 0) loadingRequests.value -= 1;
+};
 
-provide('isLoading', isLoading);
+provide(loading, {
+	loadingRequests: loadingRequests,
+	requestLoading: requestLoading,
+	releaseLoading: releaseLoading,
+});
 
 const { isAuthenticated } = useAuth(auth);
 
 onMounted(() => {
 	setTimeout(() => {
-		if (isAuthenticated.value === true) isLoading.value = false;
-		else if (isAuthenticated.value === false) isLoading.value = false;
+		releaseLoading();
 	}, 1000);
 });
 </script>
