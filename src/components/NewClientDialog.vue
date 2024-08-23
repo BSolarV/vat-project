@@ -45,11 +45,11 @@
 
 <script setup lang="ts">
 import { inject, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
 import { firestore } from 'src/boot/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import { ServiceSectors, Client } from './models';
 import { loading } from './injectionSymbols';
+import { useI18n } from 'vue-i18n';
 
 const dialogControler = defineModel<boolean>({ required: true });
 

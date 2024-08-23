@@ -91,3 +91,82 @@ export interface ReportScope {
 // =====================================
 // Vulnerabilities Models
 // =====================================
+
+export enum VulnerabilityFields {
+	VulnerabilityField_name = 'VulnerabilityField_name',
+	VulnerabilityField_criticity = 'VulnerabilityField_criticity',
+	VulnerabilityField_cvssVector = 'VulnerabilityField_cvssVector',
+	VulnerabilityField_metricImpact = 'VulnerabilityField_metricImpact',
+	VulnerabilityField_metricExlpotability = 'VulnerabilityField_metricExlpotability',
+	VulnerabilityField_description = 'VulnerabilityField_description',
+	VulnerabilityField_impact = 'VulnerabilityField_impact',
+	VulnerabilityField_reference = 'VulnerabilityField_reference',
+	VulnerabilityField_recommendations = 'VulnerabilityField_recommendations',
+	VulnerabilityField_CVEs = 'VulnerabilityField_CVEs',
+}
+
+export enum VulnerabilityExtraFields {
+	VulnerabilityDetailedField_URL = 'VulnerabilityDetailedField_URL',
+	VulnerabilityDetailedField_evidence = 'VulnerabilityDetailedField_evidence',
+}
+
+export type VulnerabilityDetailedFields =
+	| VulnerabilityFields
+	| VulnerabilityExtraFields;
+
+// VulnerabilityMapper auxiliar
+export interface VulnerabilityCardMapper {
+	[row: number]: {
+		[col: number]: VulnerabilityDetailedFields | undefined;
+	};
+}
+
+export enum Criticities {
+	Criticity_Critical = 'Criticity_Critical',
+	Criticity_High = 'Criticity_High',
+	Criticity_Medium = 'Criticity_Medium',
+	Criticity_Low = 'Criticity_Low',
+	Criticity_Informative = 'Criticity_Informative',
+}
+
+export enum MetricsImpact {
+	MetricImpact_Critical = 'MetricImpact_Critical',
+	MetricImpact_High = 'MetricImpact_High',
+	MetricImpact_Medium = 'MetricImpact_Medium',
+	MetricImpact_Low = 'MetricImpact_Low',
+}
+
+export enum MetricsExplotability {
+	MetricExplotability_Level_4 = 'MetricExplotability_Level_4',
+	MetricExplotability_Level_3 = 'MetricExplotability_Level_3',
+	MetricExplotability_Level_2 = 'MetricExplotability_Level_2',
+	MetricExplotability_Level_1 = 'MetricExplotability_Level_1',
+}
+
+export interface Vulnerability {
+	[VulnerabilityFields.VulnerabilityField_name]: string;
+	[VulnerabilityFields.VulnerabilityField_criticity]: Criticities;
+	[VulnerabilityFields.VulnerabilityField_cvssVector]: string;
+	[VulnerabilityFields.VulnerabilityField_metricImpact]: MetricsImpact;
+	[VulnerabilityFields.VulnerabilityField_metricExlpotability]: MetricsExplotability;
+	[VulnerabilityFields.VulnerabilityField_description]: string;
+	[VulnerabilityFields.VulnerabilityField_impact]: string;
+	[VulnerabilityFields.VulnerabilityField_reference]: string;
+	[VulnerabilityFields.VulnerabilityField_recommendations]: string;
+	[VulnerabilityFields.VulnerabilityField_CVEs]: string;
+}
+
+export enum VulnerabilityEvidenceTypes {
+	VulnerabilityEvidenceType_Image = 'EvidenceType_Image',
+	VulnerabilityEvidenceType_Text = 'EvidenceType_Text',
+}
+
+export interface VulnerabilityEvidence {
+	type: VulnerabilityEvidenceTypes;
+	content: string;
+}
+
+export interface VulnerabilityDetails {
+	VulnerabilityDetailedField_URL: string;
+	VulnerabilityDetailedField_evidence: VulnerabilityEvidence[];
+}

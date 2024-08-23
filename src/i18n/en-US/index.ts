@@ -1,5 +1,6 @@
 export default {
 	'': '',
+	' ': ' ',
 
 	// =========================
 	// General texts
@@ -31,6 +32,8 @@ export default {
 	// =========================
 	// Report data
 	// =========================
+
+	ReportScopeDetails_Title: 'Report scope',
 
 	// Service sectors
 	serviceSector_agriculture: 'Agriculture; plantations; other rural sectors',
@@ -110,4 +113,45 @@ export default {
 	NewClientDialog_Title: 'Add new client',
 	NewClientDialog_Name: 'Name',
 	NewClientDialog_ServiceSector: 'Service Sector',
+
+	// =====================================
+	// Vulnerability
+	// =====================================
+
+	// Criticities
+	Criticity_Critical: 'Critical',
+	Criticity_High: 'High',
+	Criticity_Medium: 'Medium',
+	Criticity_Low: 'Low',
+	Criticity_Informative: 'Informative',
+
+	// Metric Impact
+	MetricImpact_Critical: 'Critical',
+	MetricImpact_High: 'High',
+	MetricImpact_Medium: 'Medium',
+	MetricImpact_Low: 'Low',
+
+	// Metric Explotability
+	MetricExplotability_Level_4: 'Level 4',
+	MetricExplotability_Level_3: 'Level 3',
+	MetricExplotability_Level_2: 'Level 2',
+	MetricExplotability_Level_1: 'Level 1',
+
+	// General
+	VulnerabilityField_name: 'Name',
+	VulnerabilityField_criticity: 'Criticity',
+	VulnerabilityField_cvssVector: 'CVSS Vector',
+	VulnerabilityField_metricImpact: 'Impact Metric ',
+	VulnerabilityField_metricExlpotability: 'Exlpotability Metric',
+	VulnerabilityField_description: 'Description',
+	VulnerabilityField_impact: 'Impact',
+	VulnerabilityField_reference: 'Reference',
+	VulnerabilityField_recommendations: 'Recommendations',
+	VulnerabilityField_CVEs: 'CVEs',
+
+	VulnerabilityDetailedField_URL: 'URL',
+	VulnerabilityDetailedField_evidence: 'Evidence',
+
+	// Vulnerability Mapper Component
+	VulnerabilityMapperComponent_Title: 'Vulnerability Example',
 };

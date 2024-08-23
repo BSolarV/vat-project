@@ -57,6 +57,17 @@
 		<!-- ------------------------- -->
 		<!-- Vulnerability Card Mapper -->
 		<!-- ------------------------- -->
+		<div v-if="fileProcessStages.scope">
+			<div class="col">
+				<VulnerabilityMapperExpansionItem
+					v-model="vulnerabilityCardMapper"
+					:vulnerabilityCardExample="vulnerabilityCardExample"
+				/>
+				<q-btn @click="processVulnerabilities">
+					Process evidences
+				</q-btn>
+			</div>
+		</div>
 	</q-page>
 </template>
 
@@ -72,11 +83,15 @@ import {
 	ReportScope,
 	ReportUser,
 	Typologies,
+	VulnerabilityCardMapper,
+	VulnerabilityExtraFields,
+	VulnerabilityFields,
 } from 'src/components/models';
 import ReportScopeDetails from 'src/components/ReportScopeDetails.vue';
 import { collection, getDocs } from 'firebase/firestore';
 import { firestore } from 'src/boot/firebase';
 import { loading } from 'src/components/injectionSymbols';
+import VulnerabilityMapperExpansionItem from 'src/components/VulnerabilityMapperExpansionItem.vue';
 
 // ===========================
 // Global auxiliaries
@@ -129,6 +144,7 @@ async function processReportFile(file: File) {
 		selectedFile.value = file;
 		const arrayBuffer = await file.arrayBuffer();
 		await processScope(arrayBuffer);
+		await processExampleVulnerability(arrayBuffer);
 	} catch (error: unknown) {
 		if (error instanceof Error) {
 			if (error.name === 'process_file_error') {
@@ -145,38 +161,20 @@ async function processReportFile(file: File) {
 	}
 }
 
-// Process scope
-async function processScope(arrayBuffer: ArrayBuffer) {
-	const result = await mammoth.convertToHtml({ arrayBuffer: arrayBuffer });
-	const html = result.value;
-	const parser = new DOMParser();
-	const doc = parser.parseFromString(html, 'text/html');
-	const alcanceH2 = Array.from(doc.querySelectorAll('H2')).find(
-		(element) => element.textContent?.trim() === 'Alcance'
-	);
-	if (alcanceH2) {
-		console.log('Alcance H2 encontrado. Analizando la tabla:');
-		let sibling = alcanceH2.nextElementSibling;
-		while (sibling && sibling.tagName !== 'H2') {
-			if (sibling.tagName === 'TABLE') {
-				processScopeTable(sibling);
-				break;
-			}
-			sibling = sibling.nextElementSibling;
-		}
-	} else {
-		console.log('No se encontró un H2 con el texto "Alcance".');
-	}
-}
-
+// ===========================
 // ===========================
 // File processing
+// ===========================
 // ===========================
 
 const fileProcessStages = ref({
 	scope: false,
 	vulnerabilities: false,
 });
+
+// ===========================
+// Process Scope
+// ===========================
 
 const reportScope: Ref<ReportScope> = ref({
 	client: '',
@@ -191,8 +189,34 @@ const reportScope: Ref<ReportScope> = ref({
 	observations: '',
 });
 
-// Process Scope table
-function processScopeTable(table: Element) {
+// --- Find scope table ---
+
+async function processScope(arrayBuffer: ArrayBuffer) {
+	const result = await mammoth.convertToHtml({ arrayBuffer: arrayBuffer });
+	const html = result.value;
+	const parser = new DOMParser();
+	const doc = parser.parseFromString(html, 'text/html');
+	const alcanceH2 = Array.from(doc.querySelectorAll('H2')).find(
+		(element) => element.textContent?.trim() === 'Alcance'
+	);
+	if (alcanceH2) {
+		console.log('Alcance H2 encontrado. Analizando la tabla:');
+		let sibling = alcanceH2.nextElementSibling;
+		while (sibling && sibling.tagName !== 'H2') {
+			if (sibling.tagName === 'TABLE') {
+				parseScopeTable(sibling);
+				break;
+			}
+			sibling = sibling.nextElementSibling;
+		}
+	} else {
+		console.log('No se encontró un H2 con el texto "Alcance".');
+	}
+}
+
+// --- Parse Scope table ---
+
+function parseScopeTable(table: Element) {
 	const rows = table.querySelectorAll('tr');
 	if (rows.length >= 3) {
 		// Get dates
@@ -288,6 +312,98 @@ function processScopeTable(table: Element) {
 	} else {
 		console.log('La tabla de alcance no tiene suficientes filas.');
 	}
+}
+
+// ===========================
+// Mapping Vulnerability Cards
+// ===========================
+
+const vulnerabilityCardMapper = ref<VulnerabilityCardMapper>({
+	0: {
+		1: VulnerabilityFields.VulnerabilityField_name,
+	},
+	1: {
+		2: VulnerabilityFields.VulnerabilityField_criticity,
+	},
+	2: {
+		2: VulnerabilityFields.VulnerabilityField_cvssVector,
+	},
+	3: {
+		2: VulnerabilityFields.VulnerabilityField_metricImpact,
+	},
+	4: {
+		2: VulnerabilityFields.VulnerabilityField_metricExlpotability,
+	},
+	5: {
+		2: VulnerabilityFields.VulnerabilityField_description,
+	},
+	6: {
+		2: VulnerabilityFields.VulnerabilityField_impact,
+	},
+	7: {
+		2: VulnerabilityFields.VulnerabilityField_reference,
+	},
+	8: {
+		2: VulnerabilityFields.VulnerabilityField_recommendations,
+	},
+	9: {
+		2: VulnerabilityFields.VulnerabilityField_CVEs,
+	},
+	10: {
+		2: VulnerabilityExtraFields.VulnerabilityDetailedField_URL,
+	},
+	12: {
+		0: VulnerabilityExtraFields.VulnerabilityDetailedField_evidence,
+	},
+});
+
+const vulnerabilityCardExample: string[][] = [];
+
+// --- Find Example Vulnerability Card ---
+
+async function processExampleVulnerability(arrayBuffer: ArrayBuffer) {
+	const result = await mammoth.convertToHtml({ arrayBuffer: arrayBuffer });
+	const html = result.value;
+	const parser = new DOMParser();
+	const doc = parser.parseFromString(html, 'text/html');
+
+	const evidenciasH2 = Array.from(doc.querySelectorAll('H2')).find(
+		(element) => element.textContent?.trim() === 'Evidencias'
+	);
+	if (evidenciasH2) {
+		console.log('Evidencias H2 encontrado. Analizando tablas:');
+		let sibling = evidenciasH2.nextElementSibling;
+		while (sibling && sibling.tagName !== 'H2') {
+			if (sibling.tagName === 'TABLE') {
+				parseExampleVulnerabilityCard(sibling);
+				break;
+			}
+			sibling = sibling.nextElementSibling;
+		}
+	} else {
+		console.log('No se encontró un H2 con el texto "Evidencias".');
+	}
+}
+
+function parseExampleVulnerabilityCard(table: Element) {
+	const rows = table.querySelectorAll('tr');
+	for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+		const row = rows[rowIndex];
+		const cols = row.querySelectorAll('td, th');
+		for (let colIndex = 0; colIndex < cols.length; colIndex++) {
+			const col = cols[colIndex];
+			if (vulnerabilityCardExample.length <= rowIndex)
+				vulnerabilityCardExample.push([]);
+			vulnerabilityCardExample[rowIndex].push(
+				col.textContent?.trim()?.slice(0, 12) || ''
+			);
+		}
+	}
+}
+
+//async function processVulnerabilities(arrayBuffer: ArrayBuffer) {
+async function processVulnerabilities() {
+	console.log(vulnerabilityCardMapper.value);
 }
 
 // ===========================
